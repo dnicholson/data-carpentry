@@ -5,6 +5,8 @@ import iris.plot as iplt
 import iris.coord_categorisation
 import cmocean
 import numpy
+import pdb
+import warnings
 
 
 def read_data(fname, month):
@@ -27,12 +29,12 @@ def convert_pr_units(cube):
     return cube
 
 
-def plot_data(cube, month, gridlines=False):
+def plot_data(cube, month, gridlines=False,levels=None):
     """Plot the data."""
 
     fig = plt.figure(figsize=[12,5])
     iplt.contourf(cube, cmap=cmocean.cm.haline_r,
-                  levels=numpy.arange(0, 10),
+                  levels=levels,
                   extend='max')
 
     plt.gca().coastlines()
@@ -47,11 +49,12 @@ def plot_data(cube, month, gridlines=False):
 
 def main(inargs):
     """Run the program."""
-
+    warnings.filterwarnings('ignore')
     cube = read_data(inargs.infile, inargs.month)
+    #pdb.set_trace()
     cube = convert_pr_units(cube)
     clim = cube.collapsed('time', iris.analysis.MEAN)
-    plot_data(clim, inargs.month)
+    plot_data(clim, inargs.month,gridlines=inargs.gridlines,levels=inargs.cbar_levs)
     plt.savefig(inargs.outfile)
 
 
@@ -60,8 +63,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=description)
 
     parser.add_argument("infile", type=str, help="Input file name")
-    parser.add_argument("month", type=str,help="Month to plot")
+    parser.add_argument("month", type=str, choices=['Jan','Feb','Mar','Apr',
+        'May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],help="Month to plot")
     parser.add_argument("outfile", type=str, help="Output file name")
+    parser.add_argument("-g", "--gridlines", action="store_true",
+        help="add gridlines to plot")
+    parser.add_argument('--cbar_levs', type=float,nargs='*', default=None,
+        help='contour levels')
 
     args = parser.parse_args()
 
