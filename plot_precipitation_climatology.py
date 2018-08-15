@@ -1,12 +1,14 @@
+import pdb
 import argparse
-import iris
+import calendar
+
+import warnings
+import numpy
 import matplotlib.pyplot as plt
+import iris
 import iris.plot as iplt
 import iris.coord_categorisation
 import cmocean
-import numpy
-import pdb
-import warnings
 
 
 def read_data(fname, month):
