@@ -48,11 +48,22 @@ def plot_data(cube, month, gridlines=False,levels=None):
     title = '%s precipitation climatology (%s)' %(cube.attributes['model_id'], month)
     plt.title(title)
 
+def apply_mask(cube,maskfile,realm):
+    sftlf_cube = iris.load_cube(maskfile, 'land_area_fraction')
+    pdb.set_trace()
+    if realm == 'ocean':
+        mask = numpy.where(sftlf_cube.data < 50, True, False)
+    elif realm == 'land':
+        mask = numpy.where(sftlf_cube.data > 50, True, False)
+    cube.data = numpy.ma.asarray(cube.data)
+    cube.data.mask = mask
+    return cube
 
 def main(inargs):
     """Run the program."""
     warnings.filterwarnings('ignore')
     cube = read_data(inargs.infile, inargs.month)
+    cube = apply_mask(cube,inargs.mask[0],inargs.mask[1])
     #pdb.set_trace()
     cube = convert_pr_units(cube)
     clim = cube.collapsed('time', iris.analysis.MEAN)
@@ -72,6 +83,9 @@ if __name__ == '__main__':
         help="add gridlines to plot")
     parser.add_argument('--cbar_levs', type=float,nargs='*', default=None,
         help='contour levels')
+    parser.add_argument("--mask", type=str, nargs=2,
+                    metavar=('SFTLF_FILE', 'REALM'), default=None,
+                    help='Apply a land or ocean mask (specify the realm to mask)')
 
     args = parser.parse_args()
 
