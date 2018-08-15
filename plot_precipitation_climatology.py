@@ -24,7 +24,7 @@ def read_data(fname, month):
 
 def convert_pr_units(cube):
     """Convert kg m-2 s-1 to mm day-1"""
-
+    assert cube.units == 'kg m-2 s-1', "Program assumes that input units are kg m-2 s-1"
     cube.data = cube.data * 86400
     cube.units = 'mm/day'
 
@@ -50,10 +50,9 @@ def plot_data(cube, month, gridlines=False,levels=None):
 
 def apply_mask(cube,maskfile,realm):
     sftlf_cube = iris.load_cube(maskfile, 'land_area_fraction')
-    pdb.set_trace()
     if realm == 'ocean':
         mask = numpy.where(sftlf_cube.data < 50, True, False)
-    elif realm == 'land':
+    else:
         mask = numpy.where(sftlf_cube.data > 50, True, False)
     cube.data = numpy.ma.asarray(cube.data)
     cube.data.mask = mask
@@ -62,6 +61,7 @@ def apply_mask(cube,maskfile,realm):
 def main(inargs):
     """Run the program."""
     warnings.filterwarnings('ignore')
+    assert inargs.mask[1] in ['ocean','land'],"domain must be ocean or land"
     cube = read_data(inargs.infile, inargs.month)
     cube = apply_mask(cube,inargs.mask[0],inargs.mask[1])
     #pdb.set_trace()
